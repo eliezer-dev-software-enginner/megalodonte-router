@@ -2,6 +2,7 @@ package megalodonte.router.v2;
 
 import megalodonte.application.Context;
 import megalodonte.application.View;
+import megalodonte.base.ComponentInterface;
 import megalodonte.base.RouteProps;
 import megalodonte.base.RouterBase;
 import megalodonte.router.RouteNotFoundException;
@@ -111,22 +112,41 @@ public final class Router implements RouterBase {
     }
 
     private View extractView(Object screen) {
+
+        // Caso 1 — Screen já é uma View
         if (screen instanceof View view) {
             return view;
         }
 
+        // Caso 2 — Screen expõe render()
         try {
             var method = screen.getClass().getMethod("render");
             Object result = method.invoke(screen);
-            return () -> (javafx.scene.Parent) result;
-        } catch (Exception e) {
+
+            if (!(result instanceof ComponentInterface<?> component)) {
+                throw new RuntimeException(
+                        "render() of " + screen.getClass().getSimpleName()
+                                + " must return ComponentInterface"
+                );
+            }
+
+            return () -> component;
+
+        } catch (NoSuchMethodException e) {
             throw new RuntimeException(
                     "Screen " + screen.getClass().getSimpleName()
-                            + " does not expose a valid render() method",
+                            + " must expose render() returning ComponentInterface",
+                    e
+            );
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Failed to invoke render() on "
+                            + screen.getClass().getSimpleName(),
                     e
             );
         }
     }
+
 
     private void invokeOptional(Object target, String method) {
         try {
