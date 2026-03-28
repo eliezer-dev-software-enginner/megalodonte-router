@@ -55,7 +55,7 @@ import java.util.function.Function;
 public final class Router implements RouterBase {
     public record Route(
             String identification,
-            Function<Router, Object> factory,
+            Function<ScreenContext, Object> factory,
             RouteProps props
     ) {}
 
@@ -76,6 +76,7 @@ public final class Router implements RouterBase {
         return resolve(entrypoint);
     }
 
+    //Context principal da aplicação base
     private Context boundContext;
 
     public void bind(Context context) {
@@ -136,6 +137,29 @@ public final class Router implements RouterBase {
 
     /* ---------------- internals ---------------- */
 
+    /**
+     * Injeta um valor em um campo da tela por reflection, se ele existir.
+     * Chamado antes de render() para que a tela já tenha contexto disponível.
+     *
+     * @param target    instância da tela
+     * @param fieldName nome do campo a injetar
+     * @param value     valor a atribuir
+     */
+    private void createOptionalField(Object target, String fieldName, Object value) {
+        try {
+            var field = target.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(target, value);
+        } catch (NoSuchFieldException ignored) {
+            // campo não declarado na tela — comportamento opcional, ignora
+        } catch (Exception e) {
+            System.err.println(
+                    "Error injecting field '" + fieldName + "' on "
+                            + target.getClass().getSimpleName() + ": " + e.getMessage()
+            );
+        }
+    }
+
     private RouteResult resolve(String path) {
         ResolvedRoute resolved = resolveRoute(path);
         Route route = resolved.route();
@@ -147,7 +171,13 @@ public final class Router implements RouterBase {
     }
 
     private Object instantiate(Route route, Map<String, String> params) {
-        Object screen = route.factory().apply(this);
+        Stage activeStage = spawnedWindowList.isEmpty()
+                ? (boundContext != null ? boundContext.javafxStage() : null)
+                : spawnedWindowList.getLast();
+
+        ScreenContext ctx = new ScreenContext(activeStage, this);
+
+        Object screen = route.factory().apply(ctx);  // contexto já disponível no construtor ✅
 
         if (screen instanceof RouteParamsAware aware) {
             aware.onRouteParams(params);
@@ -156,7 +186,6 @@ public final class Router implements RouterBase {
         invokeOptional(screen, "onMount");
         return screen;
     }
-
     private View extractView(Object screen) {
 
         // Caso 1 — Screen já é uma View
