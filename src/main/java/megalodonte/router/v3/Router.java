@@ -4,7 +4,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import megalodonte.application.Context;
-import megalodonte.application.View;
 import megalodonte.base.ComponentInterface;
 import megalodonte.base.RouteProps;
 import megalodonte.base.RouterBase;
@@ -111,8 +110,7 @@ public final class Router implements RouterBase {
             Stage stage = new Stage();
             RouteResult routeResult = resolve(path);
 
-            View view = routeResult.view();
-            ComponentInterface<?> component = view.render();
+            ComponentInterface<?> component = routeResult.view();
             Parent parent = (Parent) component.getJavaFxNode();
 
             Scene scene = new Scene(parent, routeResult.props().screenWidth(), routeResult.props().screenHeight());
@@ -166,7 +164,7 @@ public final class Router implements RouterBase {
 
         Object screen = instantiate(route, resolved.params());
 
-        View view = extractView(screen);
+        ComponentInterface<?> view = extractView(screen);
         return new RouteResult(view, route.props());
     }
 
@@ -186,10 +184,10 @@ public final class Router implements RouterBase {
         invokeOptional(screen, "onMount");
         return screen;
     }
-    private View extractView(Object screen) {
+    private ComponentInterface<?> extractView(Object screen) {
 
         // Caso 1 — Screen já é uma View
-        if (screen instanceof View view) {
+        if (screen instanceof ComponentInterface<?> view) {
             return view;
         }
 
@@ -205,8 +203,7 @@ public final class Router implements RouterBase {
                 );
             }
 
-            return () -> component;
-
+            return component;
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(
                     "Screen " + screen.getClass().getSimpleName()
