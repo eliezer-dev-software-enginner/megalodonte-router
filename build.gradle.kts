@@ -33,7 +33,7 @@ javafx {
 
     // Lista os módulos JavaFX que sua biblioteca PRECISA para compilar.
     // O plugin adiciona automaticamente a dependência para a sua plataforma de build.
-    modules("javafx.controls")
+    modules("javafx.controls","javafx.graphics")
 }
 
 dependencies {
