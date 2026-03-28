@@ -1,7 +1,7 @@
 package megalodonte.router.v3;
 
-import megalodonte.base.ComponentInterface;
-import megalodonte.base.RouteProps;
+
+import megalodonte.base.components.ComponentInterface;
 
 public record RouteResult(
         ComponentInterface<?> view,

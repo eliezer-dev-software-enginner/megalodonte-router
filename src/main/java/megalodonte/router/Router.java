@@ -3,7 +3,7 @@ package megalodonte.router;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import megalodonte.base.ComponentInterface;
+import megalodonte.base.components.ComponentInterface;
 
 import java.util.*;
 import java.util.function.Consumer;

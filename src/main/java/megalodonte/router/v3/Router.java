@@ -4,9 +4,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import megalodonte.application.Context;
-import megalodonte.base.ComponentInterface;
-import megalodonte.base.RouteProps;
-import megalodonte.base.RouterBase;
+import megalodonte.base.components.ComponentInterface;
+import megalodonte.base.route.RouterBase;
 import megalodonte.router.RouteNotFoundException;
 import megalodonte.router.RouteParamsAware;
 
@@ -93,7 +92,7 @@ public final class Router implements RouterBase {
             throw new IllegalStateException("Router não está bindado ao Context");
         }
 
-        boundContext.useView(result.view(), result.props());
+        boundContext.useView(result.view());
     }
 
     /**
