@@ -112,8 +112,13 @@ public final class Router implements RouterBase {
             ComponentInterface<?> component = routeResult.view();
             Parent parent = (Parent) component.getJavaFxNode();
 
-            Scene scene = new Scene(parent, routeResult.props().screenWidth(), routeResult.props().screenHeight());
+            RouteProps routeProps = routeResult.props();
+            Scene scene = new Scene(parent, routeProps.screenWidth(), routeProps.screenHeight());
 
+            stage.setTitle(routeProps.name());
+            stage.setWidth(routeProps.screenWidth());
+            stage.setHeight(routeProps.screenHeight());
+            stage.setResizable(routeProps.screenIsExpandable());
             stage.setScene(scene);
             stage.show();
 
