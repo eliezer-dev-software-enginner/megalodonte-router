@@ -1,0 +1,5 @@
+A ideia é que cada View/ComponentInterface tenha seu próprio contexto
+
+✅ Router resolve rota → view + props
+
+✅ Context aplica visualmente
