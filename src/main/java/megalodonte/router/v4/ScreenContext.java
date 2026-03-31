@@ -15,7 +15,7 @@ public record ScreenContext(
      * nem outras janelas spawned.
      */
     public void navigate(String path) {
-        RouteResult result = router.navigateTo(path);
+        RouteResult result = router.navigateOnStage(path, selfStage);
         RouteProps props = result.props();
 
         Parent parent = (Parent) result.view().getJavaFxNode();

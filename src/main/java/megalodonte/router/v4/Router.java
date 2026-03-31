@@ -71,7 +71,8 @@ public final class Router implements RouterBase {
     }
 
     public RouteResult entrypoint() {
-        return resolve(entrypoint);
+        Stage mainStage = boundContext != null ? boundContext.javafxStage() : null;
+        return resolveWithStage(entrypoint, mainStage);
     }
 
     //Context principal da aplicação base
@@ -79,10 +80,6 @@ public final class Router implements RouterBase {
 
     public void bind(Context context) {
         this.boundContext = context;
-    }
-
-    public RouteResult navigateTo(String path) {
-        return resolve(path);
     }
 
     /**
@@ -115,6 +112,9 @@ public final class Router implements RouterBase {
         }
     }
 
+    public RouteResult navigateOnStage(String path, Stage stage) {
+        return resolveWithStage(path, stage);
+    }
 
     /* ---------------- internals ---------------- */
 
@@ -134,12 +134,6 @@ public final class Router implements RouterBase {
         ComponentInterface<?> view = extractView(screen);
         return new RouteResult(view, route.props());
     }
-
-    private RouteResult resolve(String path) {
-        Stage mainStage = boundContext != null ? boundContext.javafxStage() : null;
-        return resolveWithStage(path, mainStage);
-    }
-
 
     private ComponentInterface<?> extractView(Object screen) {
 
