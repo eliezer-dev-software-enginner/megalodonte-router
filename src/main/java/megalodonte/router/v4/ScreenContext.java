@@ -18,11 +18,24 @@ public record ScreenContext(
      */
     public void navigate(String path) {
         RouteResult result = router.navigateOnStage(path, selfStage);
-        RouteProps props = result.props();
 
         Parent parent = (Parent) result.view().getJavaFxNode();
-        selfStage.setScene(new Scene(parent, props.screenWidth(), props.screenHeight()));
+
+        Scene current = selfStage.getScene();
+        if (current != null) {
+            current.setRoot(parent);
+        } else {
+            RouteProps props = result.props();
+            selfStage.setScene(new Scene(parent, props.screenWidth(), props.screenHeight()));
+        }
     }
+//    public void navigate(String path) {
+//        RouteResult result = router.navigateOnStage(path, selfStage);
+//        RouteProps props = result.props();
+//
+//        Parent parent = (Parent) result.view().getJavaFxNode();
+//        selfStage.setScene(new Scene(parent, props.screenWidth(), props.screenHeight()));
+//    }
 
     /**
      * Executa o callback quando a Scene estiver pronta na Stage.
