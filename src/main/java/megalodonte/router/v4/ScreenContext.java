@@ -5,6 +5,8 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import megalodonte.base.route.ScreenContextInterface;
 
+import java.util.function.Consumer;
+
 public record ScreenContext(
         Stage selfStage,
         Router router
@@ -20,5 +22,22 @@ public record ScreenContext(
 
         Parent parent = (Parent) result.view().getJavaFxNode();
         selfStage.setScene(new Scene(parent, props.screenWidth(), props.screenHeight()));
+    }
+
+    /**
+     * Executa o callback quando a Scene estiver pronta na Stage.
+     * Cobre tanto o caso onde ela ainda não existe (aguarda) quanto
+     * o caso onde já está disponível (executa imediatamente).
+     */
+    public void whenReady(Consumer<Scene> callback) {
+        Scene current = selfStage.getScene();
+        if (current != null) {
+            callback.accept(current);
+            return;
+        }
+
+        selfStage.sceneProperty().addListener((_, _, newScene) -> {
+            if (newScene != null) callback.accept(newScene);
+        });
     }
 }
