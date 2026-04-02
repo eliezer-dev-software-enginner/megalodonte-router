@@ -58,6 +58,14 @@ public class ScreenContext implements ScreenContextInterface {
         this.params = params;
     }
 
+    public Stage selfStage(){
+        return this.selfStage;
+    }
+
+    public Router router(){
+        return this.router;
+    }
+
     public Map<String, String> getParams() {
         return params;
     }
