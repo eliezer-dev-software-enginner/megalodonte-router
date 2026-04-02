@@ -123,11 +123,13 @@ public final class Router implements RouterBase {
         Route route = resolved.route();
 
         ScreenContext ctx = new ScreenContext(stage, this);
+        ctx.setParams(resolved.params());
+
         Object screen = route.factory().apply(ctx);
 
-        if (screen instanceof RouteParamsAware aware) {
-            aware.onRouteParams(resolved.params());
-        }
+//        if (screen instanceof RouteParamsAware aware) {
+//            aware.onRouteParams(resolved.params());
+//        }
 
         invokeOptional(screen, "onMount");
 

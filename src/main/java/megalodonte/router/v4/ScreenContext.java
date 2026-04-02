@@ -5,12 +5,19 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import megalodonte.base.route.ScreenContextInterface;
 
+import java.util.Map;
 import java.util.function.Consumer;
 
-public record ScreenContext(
-        Stage selfStage,
-        Router router
-) implements ScreenContextInterface {
+public class ScreenContext implements ScreenContextInterface {
+    private final Stage selfStage;
+    private final Router router;
+    private Map<String, String> params;
+
+    public ScreenContext(Stage selfStage, Router router){
+        this.selfStage = selfStage;
+
+        this.router = router;
+    }
 
     /**
      * Navega dentro da stage desta tela — nunca afeta a stage principal
@@ -29,13 +36,6 @@ public record ScreenContext(
             selfStage.setScene(new Scene(parent, props.screenWidth(), props.screenHeight()));
         }
     }
-//    public void navigate(String path) {
-//        RouteResult result = router.navigateOnStage(path, selfStage);
-//        RouteProps props = result.props();
-//
-//        Parent parent = (Parent) result.view().getJavaFxNode();
-//        selfStage.setScene(new Scene(parent, props.screenWidth(), props.screenHeight()));
-//    }
 
     /**
      * Executa o callback quando a Scene estiver pronta na Stage.
@@ -52,5 +52,13 @@ public record ScreenContext(
         selfStage.sceneProperty().addListener((_, _, newScene) -> {
             if (newScene != null) callback.accept(newScene);
         });
+    }
+
+    public void setParams(Map<String, String> params) {
+        this.params = params;
+    }
+
+    public Map<String, String> getParams() {
+        return params;
     }
 }
