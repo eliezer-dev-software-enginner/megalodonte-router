@@ -1,14 +1,17 @@
 package megalodonte.router;
 
-import megalodonte.components.Component;
-import javafx.scene.Node;
+import megalodonte.base.components.Component;
 import javafx.scene.layout.VBox;
+import org.junit.jupiter.api.Disabled;
+
 import java.util.Map;
 import java.util.HashMap;
 
 /**
  * Test utility class providing mock implementations for testing.
  */
+
+@Disabled
 public class TestUtils {
 
     /**
@@ -61,33 +64,33 @@ public class TestUtils {
     /**
      * Creates a basic route for testing.
      */
-    public static Router.Route createTestRoute(String path) {
-        return new Router.Route(
+    public static megalodonte.router.v4.Router.Route createTestRoute(String path) {
+        return new megalodonte.router.v4.Router.Route(
             path,
             router -> new MockSimpleScreen(),
-            new Router.RouteProps(800, 600, "Test Window", false)
+            new megalodonte.router.v4.RouteProps(800, 600, "Test Window", false)
         );
     }
 
     /**
      * Creates a route with parameter-aware screen for testing.
      */
-    public static Router.Route createParamAwareRoute(String path) {
-        return new Router.Route(
+    public static megalodonte.router.v4.Router.Route createParamAwareRoute(String path) {
+        return new megalodonte.router.v4.Router.Route(
             path,
             router -> new MockParamAwareScreen(),
-            new Router.RouteProps(800, 600, "Test Window", false)
+            new megalodonte.router.v4.RouteProps(800, 600, "Test Window", false)
         );
     }
 
     /**
      * Creates a route that causes render errors for testing.
      */
-    public static Router.Route createErrorRoute(String path) {
-        return new Router.Route(
+    public static megalodonte.router.v4.Router.Route createErrorRoute(String path) {
+        return new megalodonte.router.v4.Router.Route(
             path,
             router -> new MockErrorScreen(),
-            new Router.RouteProps(800, 600, "Error Window", false)
+            new megalodonte.router.v4.RouteProps(800, 600, "Error Window", false)
         );
     }
 }

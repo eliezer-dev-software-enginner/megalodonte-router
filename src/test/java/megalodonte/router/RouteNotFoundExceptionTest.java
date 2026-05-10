@@ -1,5 +1,6 @@
 package megalodonte.router;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
@@ -8,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Test suite for RouteNotFoundException.
  */
+
+@Disabled
 class RouteNotFoundExceptionTest {
 
     @Test

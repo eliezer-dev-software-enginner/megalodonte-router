@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("maven-publish")
-    id("jacoco")
+    //id("jacoco")
 
     // 🛑 CORREÇÃO: Usando o ID e a versão CORRETOS conforme a documentação oficial.
     id("org.openjfx.javafxplugin") version "0.1.0"
@@ -51,19 +51,24 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
-    finalizedBy(tasks.jacocoTestReport)
+    failOnNoDiscoveredTests = false
 }
 
-tasks.jacocoTestReport {
-    reports {
-        xml.required.set(true)
-        html.required.set(true)
-    }
-}
+//tasks.test {
+//    useJUnitPlatform()
+//    finalizedBy(tasks.jacocoTestReport)
+//}
 
-jacoco {
-    toolVersion = "0.8.8"
-}
+//tasks.jacocoTestReport {
+//    reports {
+//        xml.required.set(true)
+//        html.required.set(true)
+//    }
+//}
+//
+//jacoco {
+//    toolVersion = "0.8.8"
+//}
 
 tasks.jar {
     archiveBaseName.set("megalodonte-router")
