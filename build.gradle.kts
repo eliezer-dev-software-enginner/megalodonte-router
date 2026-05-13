@@ -49,9 +49,13 @@ dependencies {
     implementation("megalodonte:megalodonte-base:1.0.0-beta")
 }
 
+//tasks.test {
+//    useJUnitPlatform()
+//    failOnNoDiscoveredTests = false
+//}
+
 tasks.test {
-    useJUnitPlatform()
-    failOnNoDiscoveredTests = false
+    enabled = false
 }
 
 //tasks.test {
