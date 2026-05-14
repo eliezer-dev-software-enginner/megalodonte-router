@@ -5,9 +5,10 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import megalodonte.application.Context;
 import megalodonte.base.components.ComponentInterface;
+import megalodonte.base.route.RouteProps;
 import megalodonte.base.route.RouterBase;
+import megalodonte.base.route.RouteResult;
 import megalodonte.router.RouteNotFoundException;
-import megalodonte.router.RouteParamsAware;
 
 import java.util.*;
 import java.util.function.Consumer;
