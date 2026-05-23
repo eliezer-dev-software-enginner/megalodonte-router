@@ -55,7 +55,9 @@ dependencies {
 //}
 
 tasks.test {
+    useJUnitPlatform()
     enabled = false
+
 }
 
 //tasks.test {
