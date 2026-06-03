@@ -2,6 +2,7 @@ package megalodonte.router.v4;
 
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import megalodonte.application.Context;
 import megalodonte.base.components.ComponentInterface;
@@ -101,6 +102,9 @@ public final class Router implements RouterBase {
             Scene scene = new Scene(parent, props.screenWidth(), props.screenHeight());
 
             stage.setTitle(props.name());
+            if (props.iconPath() != null && !props.iconPath().isEmpty()) {
+                stage.getIcons().add(new Image(props.iconPath()));
+            }
             stage.setResizable(props.screenIsExpandable());
             stage.setScene(scene);
             stage.show();
