@@ -9,6 +9,8 @@ import megalodonte.base.route.RouterBase;
 import megalodonte.router.RouteNotFoundException;
 import megalodonte.router.RouteParamsAware;
 
+import megalodonte.base.route.RouteProps;
+import megalodonte.base.route.RouteResult;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
