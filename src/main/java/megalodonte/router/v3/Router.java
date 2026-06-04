@@ -53,6 +53,7 @@ import java.util.function.Function;
  * router.navigateTo("home"); // Navigates in main window
  * }</pre>
  */
+@Deprecated(forRemoval = true,  since = "04/jun/2026")
 public final class Router implements RouterBase {
     public record Route(
             String identification,

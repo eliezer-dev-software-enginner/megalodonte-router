@@ -46,7 +46,7 @@ import java.util.function.Function;
  * router.navigateTo("home"); // Navigates in main window
  * }</pre>
  */
-@Deprecated(forRemoval = true)
+@Deprecated(forRemoval = true,  since = "04/jun/2026")
 public class Router {
 
     /**
