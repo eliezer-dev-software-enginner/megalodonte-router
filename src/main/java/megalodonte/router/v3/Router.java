@@ -2,6 +2,7 @@ package megalodonte.router.v3;
 
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import megalodonte.application.Context;
 import megalodonte.base.components.ComponentInterface;
@@ -9,6 +10,8 @@ import megalodonte.base.route.RouterBase;
 import megalodonte.router.RouteNotFoundException;
 import megalodonte.router.RouteParamsAware;
 
+import megalodonte.base.route.RouteProps;
+import megalodonte.base.route.RouteResult;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -50,6 +53,7 @@ import java.util.function.Function;
  * router.navigateTo("home"); // Navigates in main window
  * }</pre>
  */
+@Deprecated(forRemoval = true,  since = "04/jun/2026")
 public final class Router implements RouterBase {
     public record Route(
             String identification,
@@ -116,6 +120,9 @@ public final class Router implements RouterBase {
             Scene scene = new Scene(parent, routeProps.screenWidth(), routeProps.screenHeight());
 
             stage.setTitle(routeProps.name());
+            if (routeProps.iconPath() != null && !routeProps.iconPath().isEmpty()) {
+                stage.getIcons().add(new Image(routeProps.iconPath()));
+            }
             stage.setWidth(routeProps.screenWidth());
             stage.setHeight(routeProps.screenHeight());
             stage.setResizable(routeProps.screenIsExpandable());

@@ -46,13 +46,17 @@ import java.util.function.Function;
  * router.navigateTo("home"); // Navigates in main window
  * }</pre>
  */
-@Deprecated(forRemoval = true)
+@Deprecated(forRemoval = true,  since = "04/jun/2026")
 public class Router {
 
     /**
      * Route UI metadata.
      */
-    public record RouteProps(int screenWidth, int screenHeight, String name, boolean screenIsExpandable) {}
+    public record RouteProps(int screenWidth, int screenHeight, String name, boolean screenIsExpandable, String iconPath) {
+        public RouteProps(int screenWidth, int screenHeight, String name, boolean screenIsExpandable) {
+            this(screenWidth, screenHeight, name, screenIsExpandable, null);
+        }
+    }
 
     /**
      * Route definition.

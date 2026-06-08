@@ -2,6 +2,7 @@ package megalodonte.router.v4;
 
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import megalodonte.base.route.RouteProps;
 import megalodonte.base.route.RouteResult;
@@ -49,6 +50,9 @@ public class ScreenContext implements ScreenContextInterface {
         selfStage.setHeight(props.screenHeight());
         if (props.name() != null) {
             selfStage.setTitle(props.name());
+        }
+        if (props.iconPath() != null && !props.iconPath().isEmpty()) {
+            selfStage.getIcons().add(new Image(props.iconPath()));
         }
         selfStage.setResizable(props.screenIsExpandable());
         selfStage.centerOnScreen();
