@@ -9,6 +9,7 @@ import megalodonte.base.components.ComponentInterface;
 import megalodonte.base.route.RouteProps;
 import megalodonte.base.route.RouterBase;
 import megalodonte.base.route.RouteResult;
+import megalodonte.base.scale.ScaleProvider;
 import megalodonte.router.RouteNotFoundException;
 
 import java.util.*;
@@ -99,7 +100,9 @@ public final class Router implements RouterBase {
             RouteProps props = routeResult.props();
 
             Parent parent = (Parent) routeResult.view().getJavaFxNode();
-            Scene scene = new Scene(parent, props.screenWidth(), props.screenHeight());
+            Scene scene = new Scene(parent,
+                    ScaleProvider.scale(props.screenWidth()),
+                    ScaleProvider.scale(props.screenHeight()));
 
             stage.setTitle(props.name());
             if (props.iconPath() != null && !props.iconPath().isEmpty()) {

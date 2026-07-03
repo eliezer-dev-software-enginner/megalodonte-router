@@ -7,6 +7,7 @@ import javafx.stage.Stage;
 import megalodonte.base.route.RouteProps;
 import megalodonte.base.route.RouteResult;
 import megalodonte.base.route.ScreenContextInterface;
+import megalodonte.base.scale.ScaleProvider;
 
 import java.util.Map;
 import java.util.function.Consumer;
@@ -43,11 +44,13 @@ public class ScreenContext implements ScreenContextInterface {
         if (current != null) {
             current.setRoot(parent);
         } else {
-            selfStage.setScene(new Scene(parent, props.screenWidth(), props.screenHeight()));
+            selfStage.setScene(new Scene(parent,
+                    ScaleProvider.scale(props.screenWidth()),
+                    ScaleProvider.scale(props.screenHeight())));
         }
 
-        selfStage.setWidth(props.screenWidth());
-        selfStage.setHeight(props.screenHeight());
+        selfStage.setWidth(ScaleProvider.scale(props.screenWidth()));
+        selfStage.setHeight(ScaleProvider.scale(props.screenHeight()));
         if (props.name() != null) {
             selfStage.setTitle(props.name());
         }
