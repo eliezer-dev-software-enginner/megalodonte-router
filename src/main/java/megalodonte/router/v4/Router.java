@@ -6,6 +6,7 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import megalodonte.application.Context;
 import megalodonte.base.components.ComponentInterface;
+import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.route.RouteProps;
 import megalodonte.base.route.RouterBase;
 import megalodonte.base.route.RouteResult;
@@ -56,11 +57,11 @@ import java.util.function.Function;
 public final class Router implements RouterBase {
     public record Route(
             String identification,
-            Function<ScreenContext, Object> factory,
+            Function<ScreenContext, ScreenComponent> factory,
             RouteProps props
     ) {}
 
-
+    private final Map<Stage, ScreenComponent> activeScreens = new HashMap<>();
     //TODO: talvez devesse ficar no contexto da aplicação base
     private final List<Stage> spawnedWindowList;
 
@@ -113,8 +114,11 @@ public final class Router implements RouterBase {
             stage.show();
 
             spawnedWindowList.add(stage);
-            stage.setOnCloseRequest(e -> spawnedWindowList.removeIf(w -> w == stage));
-
+            stage.setOnCloseRequest(e -> {
+                spawnedWindowList.removeIf(w -> w == stage);
+                ScreenComponent screen = activeScreens.remove(stage);
+                if (screen != null) screen.onDestroy();
+            });
         } catch (Exception e) {
             errorHandler.accept(e);
         }
@@ -130,16 +134,19 @@ public final class Router implements RouterBase {
         ResolvedRoute resolved = resolveRoute(path);
         Route route = resolved.route();
 
+        // destrói a screen anterior vinculada a essa stage, se existir
+        ScreenComponent previous = activeScreens.get(stage);
+        if (previous != null) {
+           previous.onDestroy();
+        }
+
         ScreenContext ctx = new ScreenContext(stage, this);
         ctx.setParams(resolved.params());
 
-        Object screen = route.factory().apply(ctx);
+        ScreenComponent screen = route.factory().apply(ctx);
+        activeScreens.put(stage, screen);
 
-//        if (screen instanceof RouteParamsAware aware) {
-//            aware.onRouteParams(resolved.params());
-//        }
-
-        invokeOptional(screen, "onMount");
+        screen.onMount();
 
         ComponentInterface<?> view = extractView(screen);
         return new RouteResult(view, route.props());
@@ -176,19 +183,6 @@ public final class Router implements RouterBase {
                     "Failed to invoke render() on "
                             + screen.getClass().getSimpleName(),
                     e
-            );
-        }
-    }
-
-
-    private void invokeOptional(Object target, String method) {
-        try {
-            target.getClass().getMethod(method).invoke(target);
-        } catch (NoSuchMethodException ignored) {
-        } catch (Exception e) {
-            System.err.println(
-                    "Error invoking " + method + " on "
-                            + target.getClass().getSimpleName()
             );
         }
     }
