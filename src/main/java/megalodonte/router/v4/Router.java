@@ -5,6 +5,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import megalodonte.application.Context;
+import megalodonte.application.ErrorReporter;
 import megalodonte.base.components.ComponentInterface;
 import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.route.RouteProps;
@@ -57,7 +58,7 @@ import java.util.function.Function;
 public final class Router implements RouterBase {
     public record Route(
             String identification,
-            Function<ScreenContext, ScreenComponent> factory,
+            ScreenFactory factory,
             RouteProps props
     ) {}
 
@@ -143,9 +144,15 @@ public final class Router implements RouterBase {
         ScreenContext ctx = new ScreenContext(stage, this);
         ctx.setParams(resolved.params());
 
-        ScreenComponent screen = route.factory().apply(ctx);
-        activeScreens.put(stage, screen);
+        ScreenComponent screen;
+        try {
+            screen = route.factory().create(ctx);
+        } catch (Exception e) {
+            ErrorReporter.handle(e);
+            throw new RouteResolutionException(path, e);
+        }
 
+        activeScreens.put(stage, screen);
         screen.onMount();
 
         ComponentInterface<?> view = extractView(screen);
@@ -165,28 +172,32 @@ public final class Router implements RouterBase {
             Object result = method.invoke(screen);
 
             if (!(result instanceof ComponentInterface<?> component)) {
-                throw new RuntimeException(
-                        "render() of " + screen.getClass().getSimpleName()
-                                + " must return ComponentInterface"
+                var e = new IllegalStateException(
+                        "render() de " + screen.getClass().getSimpleName()
+                                + " deve retornar ComponentInterface"
                 );
+                ErrorReporter.handle(e);
+                throw e;
             }
 
             return component;
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException(
+            var wrapped = new IllegalStateException(
                     "Screen " + screen.getClass().getSimpleName()
-                            + " must expose render() returning ComponentInterface",
+                            + " deve expor render() retornando ComponentInterface",
                     e
             );
+            ErrorReporter.handle(wrapped);
+            throw wrapped;
         } catch (Exception e) {
-            throw new RuntimeException(
-                    "Failed to invoke render() on "
-                            + screen.getClass().getSimpleName(),
+            var wrapped = new IllegalStateException(
+                    "Falha ao invocar render() em " + screen.getClass().getSimpleName(),
                     e
             );
+            ErrorReporter.handle(wrapped);
+            throw wrapped;
         }
     }
-
     /* ---------------- route matching ---------------- */
 
     private record ResolvedRoute(Route route, Map<String, String> params) {}
