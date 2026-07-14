@@ -153,9 +153,9 @@ public final class Router implements RouterBase {
         }
 
         activeScreens.put(stage, screen);
-        screen.onMount();
 
         ComponentInterface<?> view = extractView(screen);
+        screen.onMount();
         return new RouteResult(view, route.props());
     }
 
