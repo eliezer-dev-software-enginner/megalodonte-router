@@ -1,9 +1,12 @@
 package megalodonte.router.v4;
 
+import javafx.animation.FadeTransition;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+import megalodonte.base.components.Component;
 import megalodonte.base.route.RouteProps;
 import megalodonte.base.route.RouteResult;
 import megalodonte.base.route.ScreenContextInterface;
@@ -16,6 +19,8 @@ public class ScreenContext implements ScreenContextInterface {
     private final Stage selfStage;
     private final Router router;
     private Map<String, String> params;
+
+    private static final Duration TRANSITION_DURATION = Duration.millis(200);
 
     public ScreenContext(Stage selfStage, Router router){
         this.selfStage = selfStage;
@@ -37,28 +42,7 @@ public class ScreenContext implements ScreenContextInterface {
      */
     public void navigate(String path) {
         RouteResult result = router.navigateOnStage(path, selfStage);
-        RouteProps props = result.props();
-        Parent parent = (Parent) result.view().getJavaFxNode();
-
-        Scene current = selfStage.getScene();
-        if (current != null) {
-            current.setRoot(parent);
-        } else {
-            selfStage.setScene(new Scene(parent,
-                    ScaleProvider.scale(props.screenWidth()),
-                    ScaleProvider.scale(props.screenHeight())));
-        }
-
-        selfStage.setWidth(ScaleProvider.scale(props.screenWidth()));
-        selfStage.setHeight(ScaleProvider.scale(props.screenHeight()));
-        if (props.name() != null) {
-            selfStage.setTitle(props.name());
-        }
-        if (props.iconPath() != null && !props.iconPath().isEmpty()) {
-            selfStage.getIcons().add(new Image(props.iconPath()));
-        }
-        selfStage.setResizable(props.screenIsExpandable());
-        selfStage.centerOnScreen();
+        applyRouteResult(result, selfStage);
     }
 
     /**
@@ -73,29 +57,47 @@ public class ScreenContext implements ScreenContextInterface {
 
     private void applyRouteResult(RouteResult result, Stage targetStage) {
         RouteProps props = result.props();
-        Parent parent = (Parent) result.view().getJavaFxNode();
+        Parent newRoot = (Parent) result.view().getJavaFxNode();
 
         Scene current = targetStage.getScene();
-        if (current != null) {
-            current.setRoot(parent);
-        } else {
-            targetStage.setScene(new Scene(parent,
+        if (current == null) {
+            targetStage.setScene(new Scene(newRoot,
                     ScaleProvider.scale(props.screenWidth()),
                     ScaleProvider.scale(props.screenHeight())));
+            applyStageProps(targetStage, props);
+            return;
         }
 
-        targetStage.setWidth(ScaleProvider.scale(props.screenWidth()));
-        targetStage.setHeight(ScaleProvider.scale(props.screenHeight()));
-        if (props.name() != null) {
-            targetStage.setTitle(props.name());
-        }
-        if (props.iconPath() != null && !props.iconPath().isEmpty()) {
-            targetStage.getIcons().add(new Image(props.iconPath()));
-        }
-        targetStage.setResizable(props.screenIsExpandable());
-        targetStage.centerOnScreen();
+        Parent oldRoot = current.getRoot();
+
+        FadeTransition fadeOut = new FadeTransition(TRANSITION_DURATION, oldRoot);
+        fadeOut.setFromValue(1.0);
+        fadeOut.setToValue(0.0);
+        fadeOut.setOnFinished(e -> {
+            newRoot.setOpacity(0.0);
+            current.setRoot(newRoot);
+            applyStageProps(targetStage, props);
+
+            FadeTransition fadeIn = new FadeTransition(TRANSITION_DURATION, newRoot);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+            fadeIn.play();
+        });
+        fadeOut.play();
     }
 
+    private void applyStageProps(Stage stage, RouteProps props) {
+        stage.setWidth(ScaleProvider.scale(props.screenWidth()));
+        stage.setHeight(ScaleProvider.scale(props.screenHeight()));
+        if (props.name() != null) {
+            stage.setTitle(props.name());
+        }
+        if (props.iconPath() != null && !props.iconPath().isEmpty()) {
+            stage.getIcons().add(new Image(props.iconPath()));
+        }
+        stage.setResizable(props.screenIsExpandable());
+        stage.centerOnScreen();
+    }
 //    /**
 //     * Navega dentro da stage desta tela — nunca afeta a stage principal
 //     * nem outras janelas spawned.
