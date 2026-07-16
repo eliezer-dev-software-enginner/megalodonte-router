@@ -125,8 +125,33 @@ public final class Router implements RouterBase {
         }
     }
 
+    /**
+     * Chamado no @ScreenContext
+     * **/
     public RouteResult navigateOnStage(String path, Stage stage) {
         return resolveWithStage(path, stage);
+    }
+
+    public RouteResult navigateAndCloseOthers(String path) {
+        Stage mainStage = boundContext.javafxStage();
+
+        List<Stage> toClose = new ArrayList<>(spawnedWindowList);
+        for (Stage stage : toClose) {
+            destroyAndCloseStage(stage);
+        }
+
+        return resolveWithStage(path, mainStage);
+    }
+
+    public Stage mainStage() {
+        return boundContext.javafxStage();
+    }
+
+    private void destroyAndCloseStage(Stage stage) {
+        spawnedWindowList.remove(stage);
+        ScreenComponent screen = activeScreens.remove(stage);
+        if (screen != null) screen.onDestroy();
+        stage.close();
     }
 
     /* ---------------- internals ---------------- */

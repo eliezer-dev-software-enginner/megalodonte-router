@@ -61,6 +61,41 @@ public class ScreenContext implements ScreenContextInterface {
         selfStage.centerOnScreen();
     }
 
+    /**
+     * Fecha todas as janelas spawned (inclusive a atual, se for uma spawned)
+     * e navega a stage principal para o path informado. Uso: logout/"Sair",
+     * garantindo retorno limpo à Auth independente de onde foi clicado.
+     */
+    public void navigateAndCloseOthers(String path) {
+        RouteResult result = router.navigateAndCloseOthers(path);
+        applyRouteResult(result, router.mainStage());
+    }
+
+    private void applyRouteResult(RouteResult result, Stage targetStage) {
+        RouteProps props = result.props();
+        Parent parent = (Parent) result.view().getJavaFxNode();
+
+        Scene current = targetStage.getScene();
+        if (current != null) {
+            current.setRoot(parent);
+        } else {
+            targetStage.setScene(new Scene(parent,
+                    ScaleProvider.scale(props.screenWidth()),
+                    ScaleProvider.scale(props.screenHeight())));
+        }
+
+        targetStage.setWidth(ScaleProvider.scale(props.screenWidth()));
+        targetStage.setHeight(ScaleProvider.scale(props.screenHeight()));
+        if (props.name() != null) {
+            targetStage.setTitle(props.name());
+        }
+        if (props.iconPath() != null && !props.iconPath().isEmpty()) {
+            targetStage.getIcons().add(new Image(props.iconPath()));
+        }
+        targetStage.setResizable(props.screenIsExpandable());
+        targetStage.centerOnScreen();
+    }
+
 //    /**
 //     * Navega dentro da stage desta tela — nunca afeta a stage principal
 //     * nem outras janelas spawned.
