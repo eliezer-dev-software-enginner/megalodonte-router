@@ -12,6 +12,7 @@ import megalodonte.base.route.RouteProps;
 import megalodonte.base.route.RouterBase;
 import megalodonte.base.route.RouteResult;
 import megalodonte.base.scale.ScaleProvider;
+import megalodonte.base.theme.ThemeManager;
 import megalodonte.router.RouteNotFoundException;
 
 import java.util.*;
@@ -105,6 +106,7 @@ public final class Router implements RouterBase {
             Scene scene = new Scene(parent,
                     ScaleProvider.scale(props.screenWidth()),
                     ScaleProvider.scale(props.screenHeight()));
+            ThemeManager.applyFontFamily(scene);
 
             stage.setTitle(props.name());
             if (props.iconPath() != null && !props.iconPath().isEmpty()) {

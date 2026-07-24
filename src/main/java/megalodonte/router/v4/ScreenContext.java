@@ -11,6 +11,7 @@ import megalodonte.base.route.RouteProps;
 import megalodonte.base.route.RouteResult;
 import megalodonte.base.route.ScreenContextInterface;
 import megalodonte.base.scale.ScaleProvider;
+import megalodonte.base.theme.ThemeManager;
 
 import java.util.Map;
 import java.util.function.Consumer;
@@ -61,9 +62,11 @@ public class ScreenContext implements ScreenContextInterface {
 
         Scene current = targetStage.getScene();
         if (current == null) {
-            targetStage.setScene(new Scene(newRoot,
+            Scene newScene = new Scene(newRoot,
                     ScaleProvider.scale(props.screenWidth()),
-                    ScaleProvider.scale(props.screenHeight())));
+                    ScaleProvider.scale(props.screenHeight()));
+            ThemeManager.applyFontFamily(newScene);
+            targetStage.setScene(newScene);
             applyStageProps(targetStage, props);
             return;
         }
