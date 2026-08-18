@@ -39,44 +39,52 @@ heavy frameworks.
 ## Key Features
 
 -   Static and dynamic routes (`/products/${id}`)
--   Route parameter extraction
+-   Route parameter extraction via `ctx.getParams()`
 -   Per-route window configuration (size, title)
 -   Spawn and close windows programmatically
--   Optional awareness of route parameters via interface
+-   Automatic cancellation of in-flight async work on navigation (`ctx.scope()`)
 -   Works with plain JavaFX or custom UI layers
 
 ------------------------------------------------------------------------
 
 ## Defining Routes
 
-Routes are defined in a single place using the `Router.Route` class.
+Routes are defined in a single place using `Router.Route`. Each route pairs an identifier with a
+`ScreenFactory` (`ctx -> new SomeScreen(ctx)`) and a `RouteProps` (from `megalodonte-base`)
+describing the window: `RouteProps(screenWidth, screenHeight, name, screenIsExpandable)`.
 
 ``` java
 public class AppRoutes {
 
-    public Router defineRoutes(Stage stage) throws ReflectiveOperationException {
-
-        var routes = Set.of(
+    public Set<Router.Route> routes() {
+        return Set.of(
             new Router.Route(
                 "home",
-                router -> new HomeScreen(router),
-                new Router.RouteProps(1300, 700, null)
+                ctx -> new HomeScreen(ctx),
+                new RouteProps(1300, 700, null, false)
             ),
             new Router.Route(
                 "cad-produtos/${id}",
-                router -> new ProdutoScreen(router),
-                new Router.RouteProps(1500, 900, "Cadastro de produtos")
+                ctx -> new ProdutoScreen(ctx),
+                new RouteProps(1500, 900, "Cadastro de produtos", true)
             ),
             new Router.Route(
                 "detail",
-                router -> new DetailScreen(router),
-                new Router.RouteProps(900, 700, null)
+                ctx -> new DetailScreen(ctx),
+                new RouteProps(900, 700, null, true)
             )
         );
-
-        return new Router(routes, "home", stage);
     }
 }
+```
+
+Wiring it up in `Main`:
+
+``` java
+MegalodonteApp.run(AppHost.class, args, context -> {
+    Router router = new Router(new AppRoutes().routes(), "home");
+    context.useRouter(router).start();
+});
 ```
 
 ### Route Pattern
@@ -96,36 +104,38 @@ The router automatically extracts:
 
 ## Navigating Between Screens
 
-To open a new route:
+Screens receive a `ScreenContext ctx` in their constructor. Use it to navigate:
 
 ``` java
-router.spawnWindow("cad-produtos/123");
+// Navigate within the current stage
+ctx.navigate("cad-produtos/123");
+
+// Open a new window for the route
+ctx.router().spawnWindow("cad-produtos/123", error -> {
+    // called if the route fails to resolve
+});
+
+// Close every spawned window and navigate the main stage back to a route
+// (e.g. logout)
+ctx.navigateAndCloseOthers("home");
 ```
 
-To close the current spawned window and optionally return to another
-route:
-
-``` java
-router.closeSpawn("home");
-```
-
-This makes navigation explicit and predictable.
+This makes navigation explicit and predictable — no direct `Stage`/`Scene` handling in screens.
 
 ------------------------------------------------------------------------
 
 ## Receiving Route Parameters
 
-Screens that need access to route parameters simply implement
-`RouteParamsAware`.
+Dynamic segments (`${id}`) are resolved into a `Map<String, String>` on the `ScreenContext` —
+read them with `ctx.getParams()`, typically in the screen's constructor:
 
 ``` java
-public class ProdutoScreen implements RouteParamsAware {
+public class ProdutoScreen implements ScreenComponent {
 
-    private String id;
+    private final String id;
 
-    @Override
-    public void onRouteParams(Map<String, String> params) {
-        this.id = params.get("id");
+    public ProdutoScreen(ScreenContext ctx) {
+        this.id = ctx.getParams().get("id");
     }
 
     public Component render() {
@@ -134,8 +144,6 @@ public class ProdutoScreen implements RouteParamsAware {
     }
 }
 ```
-
-This keeps constructors clean and avoids tight coupling with the router.
 
 ------------------------------------------------------------------------
 
@@ -154,69 +162,17 @@ development.
 
 ## Example Use Case
 
-A home screen with cards that navigate to different features:
+A home screen with menu items that open other features in their own window:
 
 ``` java
 new Column(...)
     .c_child(
         new Clickable(icon)
-            .onClick(() -> router.spawnWindow("cad-produtos/teste"))
+            .onClick(() -> ctx.router().spawnWindow("cad-produtos/teste", e -> {}))
     );
 ```
 
-Each card controls navigation without knowing anything about stages or
-scenes.
-
-------------------------------------------------------------------------
-
-## Smart Navigation (New Feature)
-
-The router now supports intelligent navigation that automatically targets the currently active stage:
-
-### Active Stage Management
-``` java
-// Get current active stage
-Stage activeStage = router.getCurrentActiveStage();
-
-// Focus back to main stage
-router.focusMainStage();
-```
-
-### Smart Navigation Behavior
-``` java
-// Start with main stage active
-Router router = new Router(routes, "home", mainStage);
-
-// Navigate on main window
-router.navigateTo("about"); // Uses main stage
-
-// Spawn new window (automatically becomes active)
-router.spawnWindow("user/123");
-
-// Navigation now targets spawned window
-router.navigateTo("profile"); // Navigates in spawned window, not main!
-
-// Return to main stage
-router.focusMainStage();
-router.navigateTo("settings"); // Back to main stage
-```
-
-### Use Cases
-
-**Multi-Window Applications:**
-- Spawn independent windows for different workflows
-- Navigation automatically follows user focus
-- Easy switching between windows
-
-**Tabbed Interfaces:**
-- Each tab can have its own navigation context
-- Router tracks which tab is active
-- Navigation happens in the correct context
-
-**Dialog-based Flows:**
-- Open modal windows for specific tasks
-- Navigation stays within the dialog
-- Return to parent when dialog closes
+Each item controls navigation without knowing anything about stages or scenes.
 
 ------------------------------------------------------------------------
 
