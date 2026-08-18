@@ -63,7 +63,9 @@ public final class Router implements RouterBase {
             RouteProps props
     ) {}
 
-    private final Map<Stage, ScreenComponent> activeScreens = new HashMap<>();
+    private record ActiveScreen(ScreenComponent screen, ScreenContext ctx) {}
+
+    private final Map<Stage, ActiveScreen> activeScreens = new HashMap<>();
     //TODO: talvez devesse ficar no contexto da aplicação base
     private final List<Stage> spawnedWindowList;
 
@@ -119,8 +121,11 @@ public final class Router implements RouterBase {
             spawnedWindowList.add(stage);
             stage.setOnCloseRequest(e -> {
                 spawnedWindowList.removeIf(w -> w == stage);
-                ScreenComponent screen = activeScreens.remove(stage);
-                if (screen != null) screen.onDestroy();
+                ActiveScreen active = activeScreens.remove(stage);
+                if (active != null) {
+                    active.ctx().scope().cancel();
+                    active.screen().onDestroy();
+                }
             });
         } catch (Exception e) {
             errorHandler.accept(e);
@@ -151,8 +156,11 @@ public final class Router implements RouterBase {
 
     private void destroyAndCloseStage(Stage stage) {
         spawnedWindowList.remove(stage);
-        ScreenComponent screen = activeScreens.remove(stage);
-        if (screen != null) screen.onDestroy();
+        ActiveScreen active = activeScreens.remove(stage);
+        if (active != null) {
+            active.ctx().scope().cancel();
+            active.screen().onDestroy();
+        }
         stage.close();
     }
 
@@ -163,9 +171,10 @@ public final class Router implements RouterBase {
         Route route = resolved.route();
 
         // destrói a screen anterior vinculada a essa stage, se existir
-        ScreenComponent previous = activeScreens.get(stage);
+        ActiveScreen previous = activeScreens.get(stage);
         if (previous != null) {
-           previous.onDestroy();
+           previous.ctx().scope().cancel();
+           previous.screen().onDestroy();
         }
 
         ScreenContext ctx = new ScreenContext(stage, this);
@@ -179,7 +188,7 @@ public final class Router implements RouterBase {
             throw new RouteResolutionException(path, e);
         }
 
-        activeScreens.put(stage, screen);
+        activeScreens.put(stage, new ActiveScreen(screen, ctx));
 
         ComponentInterface<?> view = extractView(screen);
         screen.onMount();

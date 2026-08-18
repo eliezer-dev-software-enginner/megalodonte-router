@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import megalodonte.base.async.Scope;
 import megalodonte.base.components.Component;
 import megalodonte.base.route.RouteProps;
 import megalodonte.base.route.RouteResult;
@@ -19,6 +20,7 @@ import java.util.function.Consumer;
 public class ScreenContext implements ScreenContextInterface {
     private final Stage selfStage;
     private final Router router;
+    private final Scope scope = new Scope();
     private Map<String, String> params;
 
     private static final Duration TRANSITION_DURATION = Duration.millis(200);
@@ -27,6 +29,16 @@ public class ScreenContext implements ScreenContextInterface {
         this.selfStage = selfStage;
 
         this.router = router;
+    }
+
+    /**
+     * Escopo de cancelamento vinculado a esta navegação: cancelado automaticamente pelo
+     * {@link Router} assim que a tela associada é destruída (antes de {@code onDestroy()}
+     * rodar). Trabalho assíncrono iniciado via {@code scope().run(...)} não fica pendurado
+     * depois que o usuário navega pra outro lugar.
+     */
+    public Scope scope() {
+        return scope;
     }
 
     /**
