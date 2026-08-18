@@ -102,8 +102,20 @@ public class ScreenContext implements ScreenContextInterface {
     }
 
     private void applyStageProps(Stage stage, RouteProps props) {
-        stage.setWidth(ScaleProvider.scale(props.screenWidth()));
-        stage.setHeight(ScaleProvider.scale(props.screenHeight()));
+        double width = ScaleProvider.scale(props.screenWidth());
+        double height = ScaleProvider.scale(props.screenHeight());
+
+        stage.setWidth(width);
+        stage.setHeight(height);
+        // Sem isso, uma Stage resizable pode crescer sozinha além do tamanho declarado da rota
+        // quando o conteúdo pede mais espaço do que o esperado (ex.: uma tabela cheia numa tela
+        // de lista) — o nome "screenWidth/screenHeight" já é o teto pretendido, só nunca tinha
+        // sido imposto como um de verdade. Sem o teto, esse crescimento espontâneo empurra
+        // qualquer coisa ancorada embaixo da janela (botão de ação, item de sidebar) pra fora da
+        // área visível em monitores sem altura sobrando — resizable continua permitindo o
+        // usuário encolher a janela, só não deixa ela crescer além do declarado sozinha.
+        stage.setMaxWidth(width);
+        stage.setMaxHeight(height);
         if (props.name() != null) {
             stage.setTitle(props.name());
         }
