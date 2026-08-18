@@ -220,6 +220,46 @@ router.navigateTo("settings"); // Back to main stage
 
 ------------------------------------------------------------------------
 
+## Automatic Cancellation on Navigation (`ctx.scope()`)
+
+Every `ScreenContext` (v4) owns a `Scope` (from `megalodonte-base`), created fresh for that
+navigation. The router cancels it automatically at every teardown point — main-stage
+navigation, spawned window close, `navigateAndCloseOthers` — right before calling the screen's
+`onDestroy()`. Screens don't have to do anything to get this; it's just there.
+
+Use it instead of a raw `Async.Run()` for anything that opens a resource which needs to be
+closed if the user navigates away before it finishes setting up:
+
+``` java
+public class LiveDataScreen implements ScreenComponent {
+    private final ScreenContext ctx;
+
+    public LiveDataScreen(ScreenContext ctx) {
+        this.ctx = ctx;
+    }
+
+    @Override
+    public void onMount() {
+        ctx.scope().run(() -> {
+            var connection = openConnection(); // may take a while
+            ctx.scope().onCancel(connection::close);
+            if (ctx.scope().isCancelled()) return; // screen already gone, don't start listening
+
+            connection.listen(data -> UI.runOnUi(() -> /* update state */ null));
+        });
+    }
+}
+```
+
+Without this, a screen that opens something asynchronously in `onMount` and closes it in
+`onDestroy` has a race: if `onDestroy` runs before the resource finishes opening, the
+`null`-check guard in `onDestroy` finds nothing to close, and the resource — plus everything its
+callback closures keep alive — leaks for as long as the app runs. `ctx.scope()` closes that
+window: the cleanup is guaranteed to fire, whether the resource finishes opening before or after
+the screen is destroyed.
+
+------------------------------------------------------------------------
+
 ## Design Philosophy
 
 -   No magic
