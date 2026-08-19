@@ -107,15 +107,14 @@ public class ScreenContext implements ScreenContextInterface {
 
         stage.setWidth(width);
         stage.setHeight(height);
-        // Sem isso, uma Stage resizable pode crescer sozinha além do tamanho declarado da rota
-        // quando o conteúdo pede mais espaço do que o esperado (ex.: uma tabela cheia numa tela
-        // de lista) — o nome "screenWidth/screenHeight" já é o teto pretendido, só nunca tinha
-        // sido imposto como um de verdade. Sem o teto, esse crescimento espontâneo empurra
-        // qualquer coisa ancorada embaixo da janela (botão de ação, item de sidebar) pra fora da
-        // área visível em monitores sem altura sobrando — resizable continua permitindo o
-        // usuário encolher a janela, só não deixa ela crescer além do declarado sozinha.
-        stage.setMaxWidth(width);
-        stage.setMaxHeight(height);
+        // NÃO trava setMaxWidth/setMaxHeight aqui (já foi tentado — ver DECISIONS.md do app
+        // consumidor). Um teto de tamanho vale pra qualquer resize, inclusive maximizar: numa
+        // rota resizable=true, isso capava a janela no tamanho declarado da rota mesmo tentando
+        // maximizar de propósito, o que contradiz "screenIsExpandable" — o usuário não consegue
+        // mais aproveitar a tela toda. O problema original (conteúdo empurrando a janela além do
+        // declarado sozinho) já tem correção no nível certo, no app consumidor: o conteúdo em si
+        // precisa respeitar o espaço disponível e rolar por dentro (Show.fillHeight + ScrollPane)
+        // em vez da janela ser impedida de crescer.
         if (props.name() != null) {
             stage.setTitle(props.name());
         }
