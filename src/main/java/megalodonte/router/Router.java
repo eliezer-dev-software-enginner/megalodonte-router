@@ -339,7 +339,7 @@ public class Router {
                 .invoke(screen);
 
         return new Scene(
-                        (Parent) component.getNode(),
+                        (Parent) component.getJavaFxNode(),
                         route.props().screenWidth(),
                         route.props().screenHeight()
                 );
