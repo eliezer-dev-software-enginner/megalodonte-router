@@ -13,11 +13,14 @@ import megalodonte.base.route.RouteResult;
 import megalodonte.base.route.ScreenContextInterface;
 import megalodonte.base.scale.ScaleProvider;
 import megalodonte.base.theme.ThemeManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.function.Consumer;
 
 public class ScreenContext implements ScreenContextInterface {
+    private static final Logger log = LoggerFactory.getLogger(ScreenContext.class);
     private final Stage selfStage;
     private final Router router;
     private final Scope scope = new Scope();
@@ -54,6 +57,7 @@ public class ScreenContext implements ScreenContextInterface {
      * @throws megalodonte.router.RouteNotFoundException if no route matches the given path
      */
     public void navigate(String path) {
+        log.debug("Navigating to '{}' within current stage", path);
         RouteResult result = router.navigateOnStage(path, selfStage);
         applyRouteResult(result, selfStage);
     }
@@ -64,6 +68,7 @@ public class ScreenContext implements ScreenContextInterface {
      * garantindo retorno limpo à Auth independente de onde foi clicado.
      */
     public void navigateAndCloseOthers(String path) {
+        log.info("Navigating to '{}' and closing all spawned windows", path);
         RouteResult result = router.navigateAndCloseOthers(path);
         applyRouteResult(result, router.mainStage());
     }
@@ -74,6 +79,7 @@ public class ScreenContext implements ScreenContextInterface {
 
         Scene current = targetStage.getScene();
         if (current == null) {
+            log.debug("No scene found, creating new scene with {}x{}", props.screenWidth(), props.screenHeight());
             Scene newScene = new Scene(newRoot,
                     ScaleProvider.scale(props.screenWidth()),
                     ScaleProvider.scale(props.screenHeight()));
@@ -83,6 +89,7 @@ public class ScreenContext implements ScreenContextInterface {
             return;
         }
 
+        log.debug("Applying fade transition to swap scene root");
         Parent oldRoot = current.getRoot();
 
         FadeTransition fadeOut = new FadeTransition(TRANSITION_DURATION, oldRoot);
@@ -150,10 +157,12 @@ public class ScreenContext implements ScreenContextInterface {
     public void whenReady(Consumer<Scene> callback) {
         Scene current = selfStage.getScene();
         if (current != null) {
+            log.debug("Scene already available, executing callback immediately");
             callback.accept(current);
             return;
         }
 
+        log.debug("Scene not yet available, registering listener");
         selfStage.sceneProperty().addListener((_, _, newScene) -> {
             if (newScene != null) callback.accept(newScene);
         });

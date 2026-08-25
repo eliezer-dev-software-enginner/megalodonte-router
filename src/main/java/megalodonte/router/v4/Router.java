@@ -14,6 +14,8 @@ import megalodonte.base.route.RouteResult;
 import megalodonte.base.scale.ScaleProvider;
 import megalodonte.base.theme.ThemeManager;
 import megalodonte.router.RouteNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -57,6 +59,8 @@ import java.util.function.Function;
  * }</pre>
  */
 public final class Router implements RouterBase {
+    private static final Logger log = LoggerFactory.getLogger(Router.class);
+
     public record Route(
             String identification,
             ScreenFactory factory,
@@ -76,6 +80,7 @@ public final class Router implements RouterBase {
         this.routes = routes;
         this.entrypoint = entrypoint;
         spawnedWindowList = new ArrayList<>();
+        log.info("Router initialized with {} route(s), entrypoint: '{}'", routes.size(), entrypoint);
     }
 
     public RouteResult entrypoint() {
@@ -88,6 +93,7 @@ public final class Router implements RouterBase {
 
     public void bind(Context context) {
         this.boundContext = context;
+        log.debug("Router bound to application context");
     }
 
     /**
@@ -98,6 +104,7 @@ public final class Router implements RouterBase {
      */
     public void spawnWindow(String path, Consumer<Exception> errorHandler) {
         try {
+            log.info("Spawning window for route '{}'", path);
             Stage stage = new Stage();
 
             // Resolve com a stage da janela nova, não a principal
@@ -119,7 +126,9 @@ public final class Router implements RouterBase {
             stage.show();
 
             spawnedWindowList.add(stage);
+            log.info("Window spawned successfully for route '{}'", path);
             stage.setOnCloseRequest(e -> {
+                log.debug("Spawned window closed for route '{}'", path);
                 spawnedWindowList.removeIf(w -> w == stage);
                 ActiveScreen active = activeScreens.remove(stage);
                 if (active != null) {
@@ -128,6 +137,7 @@ public final class Router implements RouterBase {
                 }
             });
         } catch (Exception e) {
+            log.error("Failed to spawn window for route '{}'", path, e);
             errorHandler.accept(e);
         }
     }
@@ -136,10 +146,12 @@ public final class Router implements RouterBase {
      * Chamado no @ScreenContext
      * **/
     public RouteResult navigateOnStage(String path, Stage stage) {
+        log.debug("Navigating to '{}' on stage", path);
         return resolveWithStage(path, stage);
     }
 
     public RouteResult navigateAndCloseOthers(String path) {
+        log.info("Navigating to '{}' and closing {} spawned window(s)", path, spawnedWindowList.size());
         Stage mainStage = boundContext.javafxStage();
 
         List<Stage> toClose = new ArrayList<>(spawnedWindowList);
@@ -155,6 +167,7 @@ public final class Router implements RouterBase {
     }
 
     private void destroyAndCloseStage(Stage stage) {
+        log.debug("Destroying and closing stage");
         spawnedWindowList.remove(stage);
         ActiveScreen active = activeScreens.remove(stage);
         if (active != null) {
@@ -167,14 +180,16 @@ public final class Router implements RouterBase {
     /* ---------------- internals ---------------- */
 
     private RouteResult resolveWithStage(String path, Stage stage) {
+        log.debug("Resolving route '{}'", path);
         ResolvedRoute resolved = resolveRoute(path);
         Route route = resolved.route();
+        log.debug("Route '{}' resolved to screen factory", path);
 
-        // destrói a screen anterior vinculada a essa stage, se existir
         ActiveScreen previous = activeScreens.get(stage);
         if (previous != null) {
+            log.debug("Destroying previous screen on stage");
            previous.ctx().scope().cancel();
-           previous.screen().onDestroy();
+            previous.screen().onDestroy();
         }
 
         ScreenContext ctx = new ScreenContext(stage, this);
@@ -183,7 +198,9 @@ public final class Router implements RouterBase {
         ScreenComponent screen;
         try {
             screen = route.factory().create(ctx);
+            log.debug("Screen created for route '{}'", path);
         } catch (Exception e) {
+            log.error("Failed to create screen for route '{}'", path, e);
             ErrorReporter.handle(e);
             throw new RouteResolutionException(path, e);
         }
@@ -191,18 +208,18 @@ public final class Router implements RouterBase {
         activeScreens.put(stage, new ActiveScreen(screen, ctx));
 
         ComponentInterface<?> view = extractView(screen);
+        log.debug("Calling onMount() for route '{}'", path);
         screen.onMount();
         return new RouteResult(view, route.props());
     }
 
     private ComponentInterface<?> extractView(Object screen) {
 
-        // Caso 1 — Screen já é uma View
         if (screen instanceof ComponentInterface<?> view) {
+            log.debug("Screen implements ComponentInterface directly");
             return view;
         }
 
-        // Caso 2 — Screen expõe render()
         try {
             var method = screen.getClass().getMethod("render");
             Object result = method.invoke(screen);
@@ -212,6 +229,7 @@ public final class Router implements RouterBase {
                         "render() de " + screen.getClass().getSimpleName()
                                 + " deve retornar ComponentInterface"
                 );
+                log.error("render() did not return ComponentInterface for {}", screen.getClass().getSimpleName(), e);
                 ErrorReporter.handle(e);
                 throw e;
             }
@@ -223,6 +241,7 @@ public final class Router implements RouterBase {
                             + " deve expor render() retornando ComponentInterface",
                     e
             );
+            log.error("Screen {} does not expose render() returning ComponentInterface", screen.getClass().getSimpleName(), e);
             ErrorReporter.handle(wrapped);
             throw wrapped;
         } catch (Exception e) {
@@ -230,6 +249,7 @@ public final class Router implements RouterBase {
                     "Falha ao invocar render() em " + screen.getClass().getSimpleName(),
                     e
             );
+            log.error("Failed to invoke render() on {}", screen.getClass().getSimpleName(), e);
             ErrorReporter.handle(wrapped);
             throw wrapped;
         }
@@ -261,10 +281,12 @@ public final class Router implements RouterBase {
             }
 
             if (matched) {
+                log.debug("Route matched: '{}' -> '{}'", path, route.identification());
                 return new ResolvedRoute(route, params);
             }
         }
 
+        log.warn("No route found for path '{}'", path);
         throw new RouteNotFoundException(path);
     }
 }
