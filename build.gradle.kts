@@ -47,6 +47,8 @@ dependencies {
     testImplementation("org.mockito:mockito-junit-jupiter:5.10.0")
 
     implementation("megalodonte:megalodonte-base:1.0.0-beta")
+   //logs
+    implementation("org.slf4j:slf4j-api:2.0.17")
 }
 
 //tasks.test {
