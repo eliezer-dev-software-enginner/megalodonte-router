@@ -100,6 +100,15 @@ public final class Router implements RouterBase {
      * Spawns a new window for the given route.
      *
      * @param path route identification to spawn
+     */
+    public void spawnWindow(String path) {
+        spawnWindow(path, e-> ErrorReporter.handle(e));
+    }
+
+    /**
+     * Spawns a new window for the given route.
+     *
+     * @param path route identification to spawn
      * @param errorHandler callback invoked if spawning fails
      */
     public void spawnWindow(String path, Consumer<Exception> errorHandler) {
