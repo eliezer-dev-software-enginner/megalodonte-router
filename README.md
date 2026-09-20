@@ -1,7 +1,7 @@
 # Megalodonte Router
 
 Megalodonte Router is a lightweight routing library designed
-specifically for **JavaFX desktop applications**.
+specifically for **JavaFX desktop applications**. Navigation-only.
 
 It was created to solve a common pain point in JavaFX projects:
 **navigation and screen management become messy very quickly** when
@@ -12,6 +12,11 @@ This Router brings a **route-based navigation model**, inspired by web
 frameworks, while staying fully compatible with JavaFX and custom UI
 frameworks.
 
+> Since v5 the router is **navigation-only**: route storage (`RouteTable`),
+> screen lifecycle (`ScreenManager`) and window spawning (`ctx.spawnWindow()`)
+> live in `megalodonte-base`. `megalodonte.router.v4` remains available for
+> existing apps that use the older `ctx.router().spawnWindow(...)` API.
+
 ------------------------------------------------------------------------
 
 ## Motivation
@@ -21,7 +26,7 @@ In traditional JavaFX applications:
 -   Navigation logic is spread across multiple classes
 -   Opening and closing windows requires repetitive boilerplate
 -   Passing parameters between screens is awkward
--   There is no concept of dynamic routes (e.g. `/product/123`)
+-   There is no concept of dynamic routes (e.g. `/product/123`)
 
 Megalodonte Router introduces:
 
@@ -41,7 +46,7 @@ heavy frameworks.
 -   Static and dynamic routes (`/products/${id}`)
 -   Route parameter extraction via `ctx.getParams()`
 -   Per-route window configuration (size, title)
--   Spawn and close windows programmatically
+-   Spawn and close windows programmatically via `ctx.spawnWindow(...)`
 -   Automatic cancellation of in-flight async work on navigation (`ctx.scope()`)
 -   Works with plain JavaFX or custom UI layers
 
@@ -49,26 +54,31 @@ heavy frameworks.
 
 ## Defining Routes
 
-Routes are defined in a single place using `Router.Route`. Each route pairs an identifier with a
-`ScreenFactory` (`ctx -> new SomeScreen(ctx)`) and a `RouteProps` (from `megalodonte-base`)
-describing the window: `RouteProps(screenWidth, screenHeight, name, screenIsExpandable)`.
+Routes are defined in a single place using `Route` (from `megalodonte-base`).
+Each route pairs an identifier with a `ScreenFactory` (`ctx -> new SomeScreen(ctx)`)
+and a `RouteProps` describing the window:
+`RouteProps(screenWidth, screenHeight, name, screenIsExpandable)`.
 
 ``` java
+import megalodonte.base.route.Route;
+import megalodonte.base.route.RouteProps;
+import megalodonte.base.route.RouteTable;
+
 public class AppRoutes {
 
-    public Set<Router.Route> routes() {
+    public Set<Route> routes() {
         return Set.of(
-            new Router.Route(
+            new Route(
                 "home",
                 ctx -> new HomeScreen(ctx),
                 new RouteProps(1300, 700, null, false)
             ),
-            new Router.Route(
+            new Route(
                 "cad-produtos/${id}",
                 ctx -> new ProdutoScreen(ctx),
                 new RouteProps(1500, 900, "Cadastro de produtos", true)
             ),
-            new Router.Route(
+            new Route(
                 "detail",
                 ctx -> new DetailScreen(ctx),
                 new RouteProps(900, 700, null, true)
@@ -82,8 +92,8 @@ Wiring it up in `Main`:
 
 ``` java
 MegalodonteApp.run(AppHost.class, args, context -> {
-    Router router = new Router(new AppRoutes().routes(), "home");
-    context.useRouter(router).start();
+    RouteTable table = new RouteTable(new AppRoutes().routes(), "home");
+    context.useRouter(new Router(table)).start();
 });
 ```
 
@@ -104,14 +114,15 @@ The router automatically extracts:
 
 ## Navigating Between Screens
 
-Screens receive a `ScreenContext ctx` in their constructor. Use it to navigate:
+Screens receive a context in their constructor — `ScreenContextInterface`
+(from `megalodonte.base.route.v2`). Use it to navigate:
 
 ``` java
 // Navigate within the current stage
 ctx.navigate("cad-produtos/123");
 
 // Open a new window for the route
-ctx.router().spawnWindow("cad-produtos/123", error -> {
+ctx.spawnWindow("cad-produtos/123", error -> {
     // called if the route fails to resolve
 });
 
@@ -126,15 +137,17 @@ This makes navigation explicit and predictable — no direct `Stage`/`Scene` han
 
 ## Receiving Route Parameters
 
-Dynamic segments (`${id}`) are resolved into a `Map<String, String>` on the `ScreenContext` —
-read them with `ctx.getParams()`, typically in the screen's constructor:
+Dynamic segments (`${id}`) are resolved into a `Map<String, String>` on the
+context — read them with `ctx.getParams()`, typically in the screen's constructor:
 
 ``` java
+import megalodonte.base.route.v2.ScreenContextInterface;
+
 public class ProdutoScreen implements ScreenComponent {
 
     private final String id;
 
-    public ProdutoScreen(ScreenContext ctx) {
+    public ProdutoScreen(ScreenContextInterface ctx) {
         this.id = ctx.getParams().get("id");
     }
 
@@ -168,7 +181,7 @@ A home screen with menu items that open other features in their own window:
 new Column(...)
     .c_child(
         new Clickable(icon)
-            .onClick(() -> ctx.router().spawnWindow("cad-produtos/teste", e -> {}))
+            .onClick(() -> ctx.spawnWindow("cad-produtos/teste", e -> {}))
     );
 ```
 
@@ -178,19 +191,21 @@ Each item controls navigation without knowing anything about stages or scenes.
 
 ## Automatic Cancellation on Navigation (`ctx.scope()`)
 
-Every `ScreenContext` (v4) owns a `Scope` (from `megalodonte-base`), created fresh for that
-navigation. The router cancels it automatically at every teardown point — main-stage
-navigation, spawned window close, `navigateAndCloseOthers` — right before calling the screen's
-`onDestroy()`. Screens don't have to do anything to get this; it's just there.
+Every screen context (`megalodonte.base.route.v2.ScreenContextBase`) owns a
+`Scope` (from `megalodonte-base`), created fresh for that navigation. The
+lifecycle manager (`ScreenManager`) cancels it automatically at every teardown
+point — main-stage navigation, spawned window close, `navigateAndCloseOthers` —
+right before calling the screen's `onDestroy()`. Screens don't have to do
+anything to get this; it's just there.
 
 Use it instead of a raw `Async.Run()` for anything that opens a resource which needs to be
 closed if the user navigates away before it finishes setting up:
 
 ``` java
 public class LiveDataScreen implements ScreenComponent {
-    private final ScreenContext ctx;
+    private final ScreenContextInterface ctx;
 
-    public LiveDataScreen(ScreenContext ctx) {
+    public LiveDataScreen(ScreenContextInterface ctx) {
         this.ctx = ctx;
     }
 
