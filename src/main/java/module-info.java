@@ -1,3 +1,4 @@
+/** Provides navigation and window routing for Megalodonte applications. */
 module megalodonte.router {
     requires transitive megalodonte.base;
 

@@ -32,6 +32,11 @@ public final class Router implements RouterBase {
     private final ScreenManager screens;
     private Context boundContext;
 
+    /**
+     * Creates a router backed by the application's route table.
+     *
+     * @param table route definitions and the entrypoint path
+     */
     public Router(RouteTable table) {
         this.table = table;
         this.screens = new ScreenManager(table);
