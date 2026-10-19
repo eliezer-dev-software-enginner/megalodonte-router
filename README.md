@@ -1,16 +1,16 @@
 # Megalodonte Router
 
-Megalodonte Router is a lightweight routing library designed
-specifically for **JavaFX desktop applications**. Navigation-only.
+Megalodonte Router is a routing library for **JavaFX desktop applications**.
+This repository contains the v5 navigation adapter; route definitions,
+screen contexts and screen lifecycle are provided by `megalodonte-base`.
 
 It was created to solve a common pain point in JavaFX projects:
 **navigation and screen management become messy very quickly** when
 everything is handled manually with `Stage`, `Scene`, and imperative
 navigation logic.
 
-This Router brings a **route-based navigation model**, inspired by web
-frameworks, while staying fully compatible with JavaFX and custom UI
-frameworks.
+The router resolves paths through a `RouteTable` and mounts the resolved
+screen on a JavaFX `Stage` through a `ScreenManager`.
 
 > Since v5 the router is **navigation-only**: route storage (`RouteTable`),
 > screen lifecycle (`ScreenManager`) and window spawning (`ctx.spawnWindow()`)
@@ -123,7 +123,8 @@ When navigating to:
 
     cad-produtos/123
 
-The router automatically extracts:
+`RouteTable` supplies the resolved parameters to `ScreenManager`. For this
+example, the expected parameter is:
 
     id = "123"
 
@@ -179,7 +180,7 @@ public class ProdutoScreen implements ScreenComponent {
 
 ## Error Handling
 
-If a route cannot be resolved, the router throws:
+If a route cannot be resolved, `RouteTable` can throw:
 
 ``` java
 RouteNotFoundException
@@ -206,17 +207,14 @@ Each item controls navigation without knowing anything about stages or scenes.
 
 ------------------------------------------------------------------------
 
-## Automatic Cancellation on Navigation (`ctx.scope()`)
+## Screen-owned asynchronous work (`ctx.scope()`)
 
-Every screen context (`megalodonte.base.route.v2.ScreenContextBase`) owns a
-`Scope` (from `megalodonte-base`), created fresh for that navigation. The
-lifecycle manager (`ScreenManager`) cancels it automatically at every teardown
-point — main-stage navigation, spawned window close, `navigateAndCloseOthers` —
-right before calling the screen's `onDestroy()`. Screens don't have to do
-anything to get this; it's just there.
+`ctx.scope()` belongs to `megalodonte-base`, not this router. The example
+below illustrates using that API for screen-owned asynchronous work. Confirm
+its cancellation and lifecycle behavior against the version of
+`megalodonte-base` used by your application.
 
-Use it instead of a raw `Async.Run()` for anything that opens a resource which needs to be
-closed if the user navigates away before it finishes setting up:
+The following example registers cleanup for a resource opened asynchronously:
 
 ``` java
 public class LiveDataScreen implements ScreenComponent {
@@ -239,12 +237,9 @@ public class LiveDataScreen implements ScreenComponent {
 }
 ```
 
-Without this, a screen that opens something asynchronously in `onMount` and closes it in
-`onDestroy` has a race: if `onDestroy` runs before the resource finishes opening, the
-`null`-check guard in `onDestroy` finds nothing to close, and the resource — plus everything its
-callback closures keep alive — leaks for as long as the app runs. `ctx.scope()` closes that
-window: the cleanup is guaranteed to fire, whether the resource finishes opening before or after
-the screen is destroyed.
+This pattern is intended to handle a resource that finishes opening after the
+screen is destroyed. Its exact cleanup guarantees depend on the implementation
+of `Scope` in `megalodonte-base`.
 
 ------------------------------------------------------------------------
 
