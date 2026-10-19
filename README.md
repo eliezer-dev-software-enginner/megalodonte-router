@@ -14,8 +14,8 @@ frameworks.
 
 > Since v5 the router is **navigation-only**: route storage (`RouteTable`),
 > screen lifecycle (`ScreenManager`) and window spawning (`ctx.spawnWindow()`)
-> live in `megalodonte-base`. `megalodonte.router.v4` remains available for
-> existing apps that use the older `ctx.router().spawnWindow(...)` API.
+> live in `megalodonte-base`. This repository exports only
+> `megalodonte.router.v5`.
 
 ------------------------------------------------------------------------
 
@@ -32,9 +32,9 @@ Megalodonte Router introduces:
 
 -   Centralized route definitions
 -   Dynamic route parameters
--   Automatic window spawning and closing
+-   Window spawning and closing through `megalodonte-base`
 -   Decoupled navigation logic
--   Clean and predictable screen lifecycle
+-   Screen lifecycle management through `megalodonte-base`
 
 The goal is **simplicity, clarity, and control** --- without introducing
 heavy frameworks.
@@ -43,12 +43,26 @@ heavy frameworks.
 
 ## Key Features
 
--   Static and dynamic routes (`/products/${id}`)
--   Route parameter extraction via `ctx.getParams()`
--   Per-route window configuration (size, title)
--   Spawn and close windows programmatically via `ctx.spawnWindow(...)`
--   Automatic cancellation of in-flight async work on navigation (`ctx.scope()`)
+-   Navigation to static and dynamic routes defined in `megalodonte-base`
+-   Route resolution and parameter extraction through `RouteTable`
+-   Screen mounting and spawned-window management through `ScreenManager`
+-   Screen APIs supplied by `megalodonte-base`, including `ctx.spawnWindow(...)` and `ctx.scope()`
 -   Works with plain JavaFX or custom UI layers
+
+------------------------------------------------------------------------
+
+## Build requirements
+
+The Gradle build requests a Java 25 toolchain and JavaFX 25.0.1. The included
+Gradle wrapper uses Gradle 9.2.0. It resolves dependencies from Maven Central
+and Maven Local, including `megalodonte:megalodonte-base:1.0.0-beta`.
+That base artifact must be available in one of those repositories before the
+project can be built; this repository does not include its source or a setup
+procedure for it. With the dependency available, run `./gradlew build` from
+the repository root on a system that can execute the wrapper script.
+
+This is a library, not a standalone application. Its Gradle publication
+coordinates are `megalodonte:megalodonte-router:1.0.0-beta`.
 
 ------------------------------------------------------------------------
 
@@ -62,7 +76,7 @@ and a `RouteProps` describing the window:
 ``` java
 import megalodonte.base.route.Route;
 import megalodonte.base.route.RouteProps;
-import megalodonte.base.route.RouteTable;
+import java.util.Set;
 
 public class AppRoutes {
 
@@ -91,6 +105,9 @@ public class AppRoutes {
 Wiring it up in `Main`:
 
 ``` java
+import megalodonte.base.route.RouteTable;
+import megalodonte.router.v5.Router;
+
 MegalodonteApp.run(AppHost.class, args, context -> {
     RouteTable table = new RouteTable(new AppRoutes().routes(), "home");
     context.useRouter(new Router(table)).start();
@@ -246,7 +263,7 @@ everything.
 
 ## Status
 
-This library is under active development and evolving alongside
-real-world desktop applications.
+The Gradle project version is `1.0.0-beta`.
 
-Feedback, ideas, and improvements are welcome.
+No license file is present in this repository; licensing terms require
+confirmation from the project owner.
