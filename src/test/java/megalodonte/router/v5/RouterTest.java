@@ -13,4 +13,9 @@ class RouterTest {
         var router = new Router(new RouteTable(Set.of(), "home"));
         assertThrows(RouteNotFoundException.class, () -> router.navigateOnStage("missing", null));
     }
+
+    @Test void unknownRouteFailsBeforeClosingOtherWindows() {
+        var router = new Router(new RouteTable(Set.of(), "home"));
+        assertThrows(RouteNotFoundException.class, () -> router.navigateAndCloseOthers("missing"));
+    }
 }

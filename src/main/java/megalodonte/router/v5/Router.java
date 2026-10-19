@@ -64,8 +64,9 @@ public final class Router implements RouterBase {
     @Override
     public RouteResult navigateAndCloseOthers(String path) {
         log.info("Navigating to '{}' and closing all spawned windows", path);
+        RouteTable.ResolvedRoute resolved = screens.resolve(path);
         screens.closeAllSpawned();
-        return mount(boundContext.javafxStage(), path);
+        return screens.mount(boundContext.javafxStage(), resolved.route(), resolved.params(), this);
     }
 
     @Override
