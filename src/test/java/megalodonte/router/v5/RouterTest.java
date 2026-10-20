@@ -26,4 +26,13 @@ class RouterTest {
         var router = new Router(new RouteTable(Set.of(route), "home"));
         assertThrows(IllegalStateException.class, () -> router.navigateAndCloseOthers("home"));
     }
+
+    @Test void entrypointRequiresBindingBeforeCreatingAScreen() {
+        var route = new Route("home", ctx -> {
+            throw new AssertionError("Screen factory must not run without a bound context");
+        }, new RouteProps(800, 600, null, false));
+        var router = new Router(new RouteTable(Set.of(route), "home"));
+
+        assertThrows(IllegalStateException.class, router::entrypoint);
+    }
 }

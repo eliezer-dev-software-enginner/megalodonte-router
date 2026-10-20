@@ -51,8 +51,7 @@ public final class Router implements RouterBase {
 
     @Override
     public RouteResult entrypoint() {
-        Stage mainStage = boundContext != null ? boundContext.javafxStage() : null;
-        return mount(mainStage, table.entrypoint());
+        return mount(mainStage(), table.entrypoint());
     }
 
     @Override
