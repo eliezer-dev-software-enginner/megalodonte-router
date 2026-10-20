@@ -65,12 +65,16 @@ public final class Router implements RouterBase {
     public RouteResult navigateAndCloseOthers(String path) {
         log.info("Navigating to '{}' and closing all spawned windows", path);
         RouteTable.ResolvedRoute resolved = screens.resolve(path);
+        Stage mainStage = mainStage();
         screens.closeAllSpawned();
-        return screens.mount(boundContext.javafxStage(), resolved.route(), resolved.params(), this);
+        return screens.mount(mainStage, resolved.route(), resolved.params(), this);
     }
 
     @Override
     public Stage mainStage() {
+        if (boundContext == null) {
+            throw new IllegalStateException("Router must be bound to an application context");
+        }
         return boundContext.javafxStage();
     }
 
