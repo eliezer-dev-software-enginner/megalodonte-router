@@ -72,6 +72,9 @@ Routes are defined in a single place using `Route` (from `megalodonte-base`).
 Each route pairs an identifier with a `ScreenFactory` (`ctx -> new SomeScreen(ctx)`)
 and a `RouteProps` describing the window:
 `RouteProps(screenWidth, screenHeight, name, screenIsExpandable)`.
+The examples below assume an application that supplies `AppHost` and the
+screen classes. Those classes and the UI components shown later are not part
+of this repository; adapt them to your application's UI layer.
 
 ``` java
 import megalodonte.base.route.Route;
@@ -105,6 +108,7 @@ public class AppRoutes {
 Wiring it up in `Main`:
 
 ``` java
+import megalodonte.application.MegalodonteApp;
 import megalodonte.base.route.RouteTable;
 import megalodonte.router.v5.Router;
 
@@ -160,6 +164,8 @@ context — read them with `ctx.getParams()`, typically in the screen's construc
 
 ``` java
 import megalodonte.base.route.v2.ScreenContextInterface;
+import megalodonte.base.components.Component;
+import megalodonte.base.components.ScreenComponent;
 
 public class ProdutoScreen implements ScreenComponent {
 
@@ -194,6 +200,8 @@ development.
 ## Example Use Case
 
 A home screen with menu items that open other features in their own window:
+the `Column`, `Clickable`, and `icon` names below represent application UI
+components, and `...` marks omitted application code.
 
 ``` java
 new Column(...)
