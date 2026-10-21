@@ -65,8 +65,9 @@ public final class Router implements RouterBase {
         log.info("Navigating to '{}' and closing all spawned windows", path);
         RouteTable.ResolvedRoute resolved = screens.resolve(path);
         Stage mainStage = mainStage();
+        RouteResult result = screens.mount(mainStage, resolved.route(), resolved.params(), this);
         screens.closeAllSpawned();
-        return screens.mount(mainStage, resolved.route(), resolved.params(), this);
+        return result;
     }
 
     @Override
