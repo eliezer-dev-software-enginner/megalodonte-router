@@ -46,7 +46,7 @@ heavy frameworks.
 -   Navigation to static and dynamic routes defined in `megalodonte-base`
 -   Route resolution and parameter extraction through `RouteTable`
 -   Screen mounting and spawned-window management through `ScreenManager`
--   Screen APIs supplied by `megalodonte-base`, including `ctx.spawnWindow(...)` and `ctx.scope()`
+-   Window spawning through the screen context supplied by `megalodonte-base`
 -   Works with plain JavaFX or custom UI layers
 
 ------------------------------------------------------------------------
@@ -212,42 +212,6 @@ new Column(...)
 ```
 
 Each item controls navigation without knowing anything about stages or scenes.
-
-------------------------------------------------------------------------
-
-## Screen-owned asynchronous work (`ctx.scope()`)
-
-`ctx.scope()` belongs to `megalodonte-base`, not this router. The example
-below illustrates using that API for screen-owned asynchronous work. Confirm
-its cancellation and lifecycle behavior against the version of
-`megalodonte-base` used by your application.
-
-The following example registers cleanup for a resource opened asynchronously:
-
-``` java
-public class LiveDataScreen implements ScreenComponent {
-    private final ScreenContextInterface ctx;
-
-    public LiveDataScreen(ScreenContextInterface ctx) {
-        this.ctx = ctx;
-    }
-
-    @Override
-    public void onMount() {
-        ctx.scope().run(() -> {
-            var connection = openConnection(); // may take a while
-            ctx.scope().onCancel(connection::close);
-            if (ctx.scope().isCancelled()) return; // screen already gone, don't start listening
-
-            connection.listen(data -> UI.runOnUi(() -> /* update state */ null));
-        });
-    }
-}
-```
-
-This pattern is intended to handle a resource that finishes opening after the
-screen is destroyed. Its exact cleanup guarantees depend on the implementation
-of `Scope` in `megalodonte-base`.
 
 ------------------------------------------------------------------------
 
