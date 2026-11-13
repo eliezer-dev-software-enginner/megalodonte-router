@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/megalodonte-logo.png" width="180" alt="Megalodonte logo">
+</p>
+
 # Megalodonte Router
 
 Megalodonte Router is a routing library for **JavaFX desktop applications**.
