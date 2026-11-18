@@ -6,7 +6,7 @@
 
 Megalodonte Router is a routing library for **JavaFX desktop applications**.
 This repository contains the v5 navigation adapter; route definitions,
-screen contexts and screen lifecycle are provided by `megalodonte-base`.
+screen contexts and screen lifecycle are provided by `megalodonte-base-desktop`.
 
 It was created to solve a common pain point in JavaFX projects:
 **navigation and screen management become messy very quickly** when
@@ -18,7 +18,7 @@ screen on a JavaFX `Stage` through a `ScreenManager`.
 
 > Since v5 the router is **navigation-only**: route storage (`RouteTable`),
 > screen lifecycle (`ScreenManager`) and window spawning (`ctx.spawnWindow()`)
-> live in `megalodonte-base`. This repository exports only
+> live in `megalodonte-base-desktop`. This repository exports only
 > `megalodonte.router.v5`.
 
 ------------------------------------------------------------------------
@@ -36,9 +36,9 @@ Megalodonte Router introduces:
 
 -   Centralized route definitions
 -   Dynamic route parameters
--   Window spawning and closing through `megalodonte-base`
+-   Window spawning and closing through `megalodonte-base-desktop`
 -   Decoupled navigation logic
--   Screen lifecycle management through `megalodonte-base`
+-   Screen lifecycle management through `megalodonte-base-desktop`
 
 The goal is **simplicity, clarity, and control** --- without introducing
 heavy frameworks.
@@ -47,10 +47,10 @@ heavy frameworks.
 
 ## Key Features
 
--   Navigation to static and dynamic routes defined in `megalodonte-base`
+-   Navigation to static and dynamic routes defined in `megalodonte-base-desktop`
 -   Route resolution and parameter extraction through `RouteTable`
 -   Screen mounting and spawned-window management through `ScreenManager`
--   Window spawning through the screen context supplied by `megalodonte-base`
+-   Window spawning through the screen context supplied by `megalodonte-base-desktop`
 -   Works with plain JavaFX or custom UI layers
 
 ------------------------------------------------------------------------
@@ -59,7 +59,7 @@ heavy frameworks.
 
 The Gradle build requests a Java 25 toolchain and JavaFX 25.0.1. The included
 Gradle wrapper uses Gradle 9.2.0. It resolves dependencies from Maven Central
-and Maven Local, including `megalodonte:megalodonte-base:1.0.0-beta`.
+and Maven Local, including `megalodonte:megalodonte-base-desktop:1.0.0-beta`.
 That base artifact must be available in one of those repositories before the
 project can be built; this repository does not include its source or a setup
 procedure for it. With the dependency available, run `./gradlew build` from
@@ -72,7 +72,7 @@ coordinates are `megalodonte:megalodonte-router:1.0.0-beta`.
 
 ## Defining Routes
 
-Routes are defined in a single place using `Route` (from `megalodonte-base`).
+Routes are defined in a single place using `Route` (from `megalodonte-base-desktop`).
 Each route pairs an identifier with a `ScreenFactory` (`ctx -> new SomeScreen(ctx)`)
 and a `RouteProps` describing the window:
 `RouteProps(screenWidth, screenHeight, name, screenIsExpandable)`.
