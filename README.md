@@ -2,7 +2,7 @@
   <img src="docs/images/megalodonte-logo.png" width="180" alt="Megalodonte logo">
 </p>
 
-# Megalodonte Router
+# Megalodonte Router Desktop
 
 Megalodonte Router is a routing library for **JavaFX desktop applications**.
 This repository contains the v5 navigation adapter; route definitions,
@@ -66,7 +66,7 @@ procedure for it. With the dependency available, run `./gradlew build` from
 the repository root on a system that can execute the wrapper script.
 
 This is a library, not a standalone application. Its Gradle publication
-coordinates are `megalodonte:megalodonte-router:1.0.0-beta`.
+coordinates are `megalodonte:megalodonte-router-desktop:1.0.0-beta`.
 
 ------------------------------------------------------------------------
 

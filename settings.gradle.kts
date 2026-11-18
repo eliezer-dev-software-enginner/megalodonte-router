@@ -1,1 +1,1 @@
-rootProject.name = "megalodonte-router"
+rootProject.name = "megalodonte-router-desktop"

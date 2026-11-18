@@ -1,6 +1,6 @@
 /** Provides navigation and window routing for Megalodonte applications. */
-module megalodonte.router {
-    requires transitive megalodonte.base;
+module megalodonte.router.desktop {
+    requires transitive megalodonte.base.desktop;
 
     requires transitive javafx.graphics;
 

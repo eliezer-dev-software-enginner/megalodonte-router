@@ -72,7 +72,7 @@ tasks.test {
 //}
 
 tasks.jar {
-    archiveBaseName.set("megalodonte-router")
+    archiveBaseName.set("megalodonte-router-desktop")
 
     manifest {
         attributes(
@@ -87,7 +87,7 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifactId = "megalodonte-router"
+            artifactId = "megalodonte-router-desktop"
         }
     }
 }
